@@ -1,20 +1,39 @@
-# listTasks
-GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title
+### listTasks
 
-# createTask
-POST http://localhost:8080/task/create
+curl -X POST http://localhost:8080/task/list \
+-H "Content-Type: application/json" \
+-d '{
+    "completed": true,
+    "order": "desc",
+    "sort_by": "title"
+}'
 
-{
+### createTask
+
+curl -X POST http://localhost:8080/task/create \
+-H "Content-Type: application/json" \
+-d '{
     "title": "title1",
     "body": "body1",
     "completed": false
-}
+}'
 
-# listTasks
-GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title
+### getTask
 
-# listTasks
-GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title
+curl -X GET http://localhost:8080/task/get/
 
-# listTasks
-GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title
+### updateTask
+
+curl -X PUT http://localhost:8080/task/update/ \
+-H "Content-Type: application/json" \
+-d '{
+    "title": "Updated Title",
+    "body": "Updated Body",
+    "completed": true
+}'
+
+
+### deleteTask
+
+curl -X DELETE http://localhost:8080/task/delete/1
+

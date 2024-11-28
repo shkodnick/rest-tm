@@ -46,8 +46,8 @@ func (t *TmStore) CreateTask(ctx context.Context, task models.CreateTaskParams) 
 	return result, nil
 }
 
-func (t *TmStore) UpdateTask(ctx context.Context, task models.Task) (models.Task, error) {
-	result := models.Task{}
+func (t *TmStore) UpdateTask(ctx context.Context, task models.Task) (models.UpdateTaskResponse, error) {
+	result := models.UpdateTaskResponse{}
 
 	sqlStr, args, err := squirrel.
 		Update(tableNameTask).
@@ -58,17 +58,16 @@ func (t *TmStore) UpdateTask(ctx context.Context, task models.Task) (models.Task
 		Where(squirrel.Eq{
 			fieldNameTaskId: task.Id,
 		}).
-		Suffix(fmt.Sprintf("RETURNING %s, %s, %s, %s, %s, %s",
+		Suffix(fmt.Sprintf("RETURNING %s, %s, %s, %s, %s",
 			fieldNameTaskId,
 			fieldNameTitle,
 			fieldNameBody,
 			fieldNameCompleted,
-			fieldNameCreatedAt,
 			fieldNameUpdatedAt)).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return models.Task{}, errors.Wrap(err, "ToSql")
+		return models.UpdateTaskResponse{}, errors.Wrap(err, "ToSql")
 	}
 
 	err = t.Store.DB.QueryRow(sqlStr, args...).
@@ -77,20 +76,19 @@ func (t *TmStore) UpdateTask(ctx context.Context, task models.Task) (models.Task
 			&result.Title,
 			&result.Body,
 			&result.Completed,
-			&result.CreatedAt,
 			&result.UpdatedAt,
 		)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return models.Task{}, errors.New("task not found")
+			return models.UpdateTaskResponse{}, errors.New("task not found")
 		}
-		return models.Task{}, errors.Wrap(err, "QueryRowContext")
+		return models.UpdateTaskResponse{}, errors.Wrap(err, "QueryRowContext")
 	}
 
 	return result, nil
 }
-func (t *TmStore) GetTask(ctx context.Context, taskId string) (models.Task, error) {
-	result := models.Task{}
+func (t *TmStore) GetTask(ctx context.Context, taskId string) (models.GetTaskResponse, error) {
+	result := models.GetTaskResponse{}
 
 	query, args, err := squirrel.Select(
 		fieldNameTaskId, fieldNameTitle, fieldNameBody, fieldNameCompleted,
@@ -102,47 +100,67 @@ func (t *TmStore) GetTask(ctx context.Context, taskId string) (models.Task, erro
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return models.Task{}, errors.Wrap(err, "ToSql")
+		return models.GetTaskResponse{}, errors.Wrap(err, "ToSql")
 	}
 
 	err = t.Store.DB.Get(&result, query, args...)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.Task{}, TaskNotFound
+			return models.GetTaskResponse{}, TaskNotFound
 		}
-		return models.Task{}, errors.Wrap(err, "Get")
+		return models.GetTaskResponse{}, errors.Wrap(err, "Get")
 	}
 
 	return result, nil
 }
 
-func (t *TmStore) ListTasks(ctx context.Context, listTasksParams models.ListTasksParams) ([]models.Task, error) {
-	result := make([]models.Task, 0)
+func (t *TmStore) ListTasks(ctx context.Context, listTasksParams models.ListTasksParams) ([]models.GetTaskResponse, error) {
+	result := make([]models.GetTaskResponse, 0)
+
+	validSortBy := map[string]bool{
+			"title":       true,
+			"created_at":  true,
+			"updated_at":  true,
+	}
+
+	validOrder := map[string]bool{
+			"asc":  true,
+			"desc": true,
+	}
+
+	if !validSortBy[listTasksParams.SortBy] {
+			listTasksParams.SortBy = "created_at"
+	}
+
+	if !validOrder[listTasksParams.Order] {
+			listTasksParams.Order = "asc"
+	}
 
 	query := squirrel.Select(
-		fieldNameTaskId, fieldNameTaskId, fieldNameBody, fieldNameCompleted, fieldNameCreatedAt, fieldNameUpdatedAt,
+			fieldNameTaskId, fieldNameTitle, fieldNameBody, fieldNameCompleted,
 	).
-		From(tableNameTask).
-		PlaceholderFormat(squirrel.Dollar)
-	
+			From(tableNameTask).
+			PlaceholderFormat(squirrel.Dollar)
+
 	if listTasksParams.Completed {
-		query = query.Where(squirrel.Eq{"completed": listTasksParams.Completed})
+			query = query.Where(squirrel.Eq{"completed": listTasksParams.Completed})
 	}
 
 	query = query.OrderBy(fmt.Sprintf("%s %s", listTasksParams.SortBy, listTasksParams.Order))
 
 	sqlStr, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "ToSql")
+			return nil, errors.Wrap(err, "ToSql")
 	}
 
 	err = t.Store.DB.SelectContext(ctx, &result, sqlStr, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "SelectContext")
+			return nil, errors.Wrap(err, "SelectContext")
 	}
 
 	return result, nil
 }
+
 
 func (t *TmStore) DeleteTask(ctx context.Context, taskID string) error {
 	sqlStr, args, err := squirrel.

@@ -5,7 +5,7 @@ import "github.com/pkg/errors"
 const (
 	tableNameTask = "task"
 
-	fieldNameTaskId    = "task_id"
+	fieldNameTaskId    = "id"
 	fieldNameTitle     = "title"
 	fieldNameBody      = "body"
 	fieldNameCompleted = "completed"
