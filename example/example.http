@@ -1,0 +1,20 @@
+# listTasks
+GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title
+
+# createTask
+POST http://localhost:8080/task/create
+
+{
+    "title": "title1",
+    "body": "body1",
+    "completed": false
+}
+
+# listTasks
+GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title
+
+# listTasks
+GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title
+
+# listTasks
+GET http://localhost:8080/tasks?completed=true&order=desc&sort_by=title

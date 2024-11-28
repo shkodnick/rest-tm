@@ -1,0 +1,5 @@
+  "redis": {
+    "addr": "tm-redis:6379",
+    "password": "tm-redis-password",
+    "db": 1
+  },

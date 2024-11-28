@@ -1,0 +1,17 @@
+[build]
+  bin = "bin/app"
+  cmd = "go build -o bin/app ./cmd"
+  delay = 1000
+  full_bin = "./bin/app"
+  include_ext = ["go", "tpl", "html", "env"]
+  exclude_dir = ["vendor", "tmp", "bin"]
+
+[log]
+  level = "debug"
+  
+[color]
+  main = "yellow"
+  watcher = "magenta"
+  build = "cyan"
+  runner = "green"
+  app = "blue"
